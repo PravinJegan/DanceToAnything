@@ -1,0 +1,21 @@
+.video_class{
+    width : 1000px;
+    height : 600px;
+    background-color: blue;
+    position: relative;
+}
+
+#camera, #line_overlay{
+    width : 1000px;
+    height : 600px;
+    left : 0;
+    top: 0;
+    background-color: gray;
+    opacity: 50%;
+    position: absolute;
+    transform: scaleX(-1);
+}
+
+#line_overlay{
+    z-index: 5;
+}
