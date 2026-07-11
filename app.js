@@ -42,3 +42,28 @@ navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
 }
 
 posetracker();
+
+
+const drawingUtils = new DrawingUtils(canvasCtx);
+
+async function drawbones() {
+
+    line_overlay.width = video.videoWidth;
+    line_overlay.height = video.videoheight;
+
+
+    let time = performance.now();
+
+    if (lastVideoTime !== video.currentTime){
+        lastVideoTime = video.currentTime;
+
+        poseLandmarker.detectForVideo(Video,lastVideoTime, (result) => {
+            
+            canvasCtx.clearRect(0, 0, line_overlay.width, line_overlay.length)
+            
+        })
+
+
+    }
+
+}
