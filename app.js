@@ -35,7 +35,7 @@ async function posetracker() {
 function startcamera(){
 navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
     video.srcObject = stream;
-    //video.addEventListener("loadeddata", drawbones) // this is for later it just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones 
+    video.addEventListener("loadeddata", drawbones) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones 
 
 });
 
@@ -49,21 +49,27 @@ const drawingUtils = new DrawingUtils(canvasCtx);
 async function drawbones() {
 
     line_overlay.width = video.videoWidth;
-    line_overlay.height = video.videoheight;
+    line_overlay.height = video.videoHeight;
 
 
     let time = performance.now();
 
-    if (lastVideoTime !== video.currentTime){
+    if (lastVideoTime !== video.currentTime){ // to double check that it isn the same frame as last time 
         lastVideoTime = video.currentTime;
 
-        poseLandmarker.detectForVideo(Video,lastVideoTime, (result) => {
+        poseLandmarker.detectForVideo(video,time, (result) => {
             
-            canvasCtx.clearRect(0, 0, line_overlay.width, line_overlay.length)
+            canvasCtx.clearRect(0, 0, line_overlay.width, line_overlay.length) //clears canves before next lien
             
+            if (result.landmarks){ //this is drawig the connecters and points based on connectons
+                for (const landmark of result.landmarks){
+                    drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS /* PoseLandmarker is capital becase POSE_CONNECTIONS just tells what pots are connected to what */, {color: "Blue", lineWidth : 4})
+                    drawingUtils.drawLandmarks(landmark, {color: "Red", radius : 5})
+                    
+                }
+            }
         })
-
-
     }
+    window.requestAnimationFrame(drawbones) //this is asking the javascrpit bofre next computer diplay frame draw the things that need to be drawn so its only doing it for the refresh rate
 
 }

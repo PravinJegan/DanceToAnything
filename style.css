@@ -1,12 +1,12 @@
 .video_class{
-    width : 1000px;
-    height : 600px;
+    width : 80%;
+    max-width: 1000px;
     position: relative;
 }
 
 #camera, #line_overlay{
-    width : 1000px;
-    height : 600px;
+    width : 80%;
+    max-width: 1000px;
     left : 0;
     top: 0;
     position: absolute;
