@@ -1,5 +1,13 @@
 Things to do
 
+1. change the fuction of drawbones so that it can work with any thing and pushes a spefic specified array so that i can use teh same exact code for the rgular video
+
+- make it so that it runs at 30 frames per second so that in the database there will be exactly 30 frames to have scores for
+
+check if it can score staning in tree
+
+- add video to get scores from tat 
+
 - add angle calulation for webcam and points use t pose as sample or like tree and see if i can see how close to that pose they are with angles
 
 - add support so that t can take a video and get the angles point areas from it and save it
