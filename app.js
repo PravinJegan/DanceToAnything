@@ -17,7 +17,8 @@ let true_score_all = [];
 const last_draw_times = new Map();
 
 
-let poseLandmarker = null;
+let playerLandmarker = null;
+let videoLandmarker = null;
 let isModelLoading = false;
 
 ///fuctions start here
@@ -31,98 +32,110 @@ setInterval(() =>
     console.log("video scores",latest_video, "\nvideo frame count", true_score_all.length);
     }, 1000);
 
-/*window.onYouTubeIframeAPIReady = function() {
-    new YT.Player('youtube-player', {
-        height: '360',
-        width: '640',
-        videoId: 'eqjFmsZGBSc', 
-        events: {
-            'onReady': async (event) => {
-                await posetracker();
-                const youtubeVideo = document.querySelector('#youtube-player video');
-                const line_overlay = document.getElementById('line_overlay_youtube');
-                
-                youtubeVideo.crossOrigin = "anonymous";
-                youtubeVideo.muted = true; 
-                youtubeVideo.playbackRate = 1.0; 
-                
-                console.log("youtube score count");
-                drawbones(true_score_all, line_overlay_youtube, youtubeVideo); 
-            }
-        }
-    });
-};
-*/
 
-// 1. DEFINE THE RECEIVER FUNCTION FIRST
+
+let youtubePlayer = null;
 window.onYouTubeIframeAPIReady = function() {
-    console.log("1. Google API loaded! Building player...");
-    new YT.Player('youtube-player', {
-        height: '360',
-        width: '640',
-        videoId: 'eqjFmsZGBSc', 
+    youtubePlayer = new YT.Player('youtube-player', {
+        height: "100%",
+        width: "100%",
+        videoId: 'WlK1ol0mGhI', 
         playerVars: {
-            'autoplay': 1,
-            'playsinline': 1
+            'autoplay': 0,
+            'playsinline': 1,
+            'controls': 0,
+            'iv_load_policy': 3,    // Kills video annotations and interactive cards
+            'modestbranding': 1,    // Removes the YouTube logo watermark
+            'rel': 0,               // Prevents end-screen recommendation grids from overlapping
+            'disablekb': 1        
         },
-        events: {
-            'onReady': async (event) => {
-                console.log("2. Player built! Force-starting video...");
-                event.target.playVideo();
-                
-                await posetracker();
-                
-                // Poll every 100ms until the internal video tag physically appears
-                const pollForVideo = setInterval(() => {
-                    const youtubeVideo = document.querySelector('#youtube-player video');
-                    if (youtubeVideo) {
-                        clearInterval(pollForVideo);
-                        
-                        youtubeVideo.crossOrigin = "anonymous";
-                        youtubeVideo.muted = true; 
-                        
-                        console.log("3. Video hooked! Running MediaPipe engine...");
-                        drawbones(true_score_all, document.getElementById('line_overlay_youtube'), youtubeVideo); 
-                    }
-                }, 100);
-            }
-        }
     });
 };
 
-// 2. INJECT GOOGLE'S SCRIPT SECOND (So it can never miss the function above!)
 const tag = document.createElement('script');
 tag.src = "https://www.youtube.com/iframe_api";
 const firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
 
+document.getElementById('start-btn').addEventListener('click', async () => {
+
+    await posetracker();
+    const video_underlay = document.getElementById('youtube_capture_feed');
+    const line_overlay = document.getElementById('line_overlay_youtube');
+    const youtube_div = document.getElementById('video_div');
+
+    try {
+        document.getElementById('start-btn').classList.toggle('invisable');
+        const stream = await navigator.mediaDevices.getDisplayMedia({ 
+            video: { frameRate: 30 }, 
+            audio: true ,
+            preferCurrentTab: true,       // 1. Opens the popup directly to the "This Tab" tab instead of "Entire Screen"
+            selfBrowserSurface: 'include', // 2. Guarantees your current webpage is included and pre-selected in the list
+            surfaceSwitching: 'include'
+        });
+
+        
+        if (window.CropTarget) {
+            const [videoTrack] = stream.getVideoTracks();
+            const cropTarget = await CropTarget.fromElement(youtube_div);
+            await videoTrack.cropTo(cropTarget);
+            console.log("croped video");
+        } else {
+            console.warn("cant crop video");
+        }
+        video_underlay.srcObject = stream;
+        video_underlay.play();
+
+        video_underlay.addEventListener("loadeddata", () => // arrow fuction so it satrts intvar only after drabones happens which only happens after the video loads 
+        {
+            
+        drawbones(true_score_all, line_overlay, video_underlay, videoLandmarker) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
+
+        });
+    } catch (err) {
+        console.error("users said no to screen", err);
+        document.getElementById('start-btn').classList.remove('invisable');
+    }
+    youtubePlayer.playVideo(); // AD A IF STATMENT TO MAKE SURE THE VIDEO LOADS LATER!!!
+    youtubePlayer.unMute();
+    youtubePlayer.setVolume(100);
+});
+//gets the button to reappere
+const invisCover = document.getElementById('temp-cover');
+invisCover.addEventListener("click", () =>{
+document.getElementById('start-btn').classList.remove('invisable');
+youtubePlayer.pauseVideo();
+});
+
 async function posetracker() {
-    if (poseLandmarker) return poseLandmarker;
+    if (playerLandmarker && videoLandmarker) return;
 
     if (isModelLoading) {
-        while (!poseLandmarker) {
+        while (!playerLandmarker || !videoLandmarker) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
-        return poseLandmarker;
+        return;
     }
 
     isModelLoading = true;
 
     const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
     );
-    poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+
+    const modelType = "lite"; // Options: "lite", "full", "heavy"
+    const options = {
         baseOptions: {
-            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task",
+            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_"+ modelType + "/float16/1/pose_landmarker_"+ modelType + ".task",
             delegate: "GPU"
         },
         runningMode: runningMode,
         numPoses: peopleCount
-    });
+    };
 
+    playerLandmarker = await PoseLandmarker.createFromOptions(vision, options);
+    videoLandmarker = await PoseLandmarker.createFromOptions(vision, options);
     console.log("AI Model has been loade from online");
-    
-    return poseLandmarker;
 }
 
 async function startcamera(){
@@ -135,7 +148,7 @@ navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
     video_underlay.addEventListener("loadeddata", () => // arrow fuction so it satrts intvar only after drabones happens which only happens after the video loads 
         {
             
-        drawbones(player_all, line_overlay, video_underlay) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
+        drawbones(player_all, line_overlay, video_underlay, playerLandmarker) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
     })  
     
 });
@@ -143,9 +156,9 @@ navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
 }
 
 
-async function drawbones(player_array, canvas, video) {
+async function drawbones(player_array, canvas, video, landmarkerType) {
 
-    window.requestAnimationFrame( ()=> {drawbones(player_array, canvas, video)})//this is asking the javascrpit bofre next computer diplay frame draw the things that need to be drawn so its only doing it for the refresh rate
+    window.requestAnimationFrame( ()=> {drawbones(player_array, canvas, video, landmarkerType)})//this is asking the javascrpit bofre next computer diplay frame draw the things that need to be drawn so its only doing it for the refresh rate
 
     if (!video || video.readyState < 2 || video.paused || video.ended) { //if video not on dont start 
     return; 
@@ -161,15 +174,21 @@ async function drawbones(player_array, canvas, video) {
     const isLiveStream = Boolean(video.srcObject);
     const currentClockType = isLiveStream ? performance.now() : video.currentTime;
     const frame_time = isLiveStream ? (1000/30) : (1/30);
+    const tolerance = isLiveStream ? 2 : 0.002;
 
-    let lastTime = last_draw_times.get(video) || 0;
+    let lastTime = last_draw_times.get(video);
+    if (lastTime === undefined) {
+        lastTime = currentClockType;
+        last_draw_times.set(video, lastTime);
+    }
 
-    if (currentClockType - lastTime >= frame_time){ 
+    
+    if (currentClockType - lastTime >= (frame_time - tolerance)){ 
 
-        let nextDrawTime = currentClockType - (lastTime % frame_time);
+        let nextDrawTime = lastTime + frame_time;
         last_draw_times.set(video, nextDrawTime);
 
-        let result = poseLandmarker.detectForVideo(video, performance.now());
+        let result = landmarkerType.detectForVideo(video, performance.now());
         
         let player_frame = [null,null,null,null,null,null,null,null,null,null]
 
@@ -180,7 +199,7 @@ async function drawbones(player_array, canvas, video) {
 
         if (result.landmarks && canvas){ //this is drawig the connecters and points based on connectons
             for (const landmark of result.landmarks){
-                drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS /* PoseLandmarker is capital becase POSE_CONNECTIONS just tells what pots are connected to what */, {color: "Blue", lineWidth : 4});
+                drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS /* PoseLandmarker is capital becase POSE_CONNECTIONS just tells what pots are connected to what */, {color: "Blue", lineWidth : 10});
                 drawingUtils.drawLandmarks(landmark, {color: "Red", radius : 5});
             }
         }

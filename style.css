@@ -1,4 +1,4 @@
-.video_class{
+/*.video_class{
     width : 80%;
     max-width: 1000px;
     position: relative;
@@ -15,4 +15,122 @@
 
 #line_overlay{
     z-index: 5;
+}*/
+
+/* 1. RESET: Remove browser default margins and lock the screen from scrolling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #292323;
+    font-family: sans-serif;
+}
+
+/* 2. THE LAUNCH BUTTON: Floating in top-right corner */
+#start-btn {
+    position: relative;
+    top: 0;
+    right: 0;
+    z-index: 100;
+    padding: 12px 24px;
+    background-color: #b50606;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    width : 400px;
+    height: 100px;
+    font-size : 2rem;
+    pointer-events: auto;
+}
+
+#button-center {
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    height: 90vh;
+    pointer-events: none;
+}
+
+#start-btn:hover {
+    background-color: #9f0909;
+}
+
+
+/* 3. BACKGROUND LAYER: Force YouTube to fill 100% of the screen */
+#video_div {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+
+}
+
+#youtube-player, #line_overlay_youtube {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    pointer-events: none;
+}
+
+#line_overlay_youtube {
+    z-index: 2;
+    pointer-events: none; /* Crucial: Lets mouse clicks pass through to YouTube play/pause controls! */
+}
+
+/* Keep the receiver tag invisible so it doesn't create a second video on your screen */
+#youtube_capture_feed {
+    display: none; /*MAYBE JUST CHANGE TO INVISABLE CLASS BUT IDK*/
+}
+
+/* 4. FOREGROUND HUD LAYER: Bottom-Left Picture-in-Picture Webcam */
+#webcam_div{
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 240px;
+    height: 180px;
+    z-index: 10;
+    border: 3px solid #001532;
+    border-radius: 14px;
+    overflow: hidden;
+    background-color: #111;
+}
+
+#camera, #line_overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform: scaleX(-1); /* mirros webcam */
+}
+
+#line_overlay {
+    z-index: 11;
+}
+
+#temp-cover {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: transparent;
+}
+
+
+.invisable{
+    display : none;
 }
