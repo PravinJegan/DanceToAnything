@@ -1,10 +1,13 @@
 Things to do
 
--fix the frame timings becase it is currntly noot running at exactly 30 frames per soecond
-      -or think of a better way to traxk excat time of frames to compare the both?
-      - mostly fixed rread more about the changes to see exactly why the module was breaking it
-      -runs to fast on heavy mode
-      -runs more incostantly on full mode check wjy bothese these thinsg happen
+UNDERTAND SCORING AGO MORE
+
+Change it so that you cant just game the system and holy hae you schest be tracked and gain infinate points 
+
+make it so that scoreing is more actuate to all body parts but genours when you are close to being right
+
+
+
 
 -syconise the clocks so that the frames of each both satrt on zero at the same time
       -alredy satrted asking ai about it
@@ -50,3 +53,9 @@ THINGS that are done!!!
 - make it so you camera shows in corner and video shows in big screen
 
 - make it so that it runs at 30 frames per second so that in the database there will be exactly 30 frames to have scores for
+
+-fix the frame timings becase it is currntly noot running at exactly 30 frames per soecond
+      -or think of a better way to traxk excat time of frames to compare the both?
+      - mostly fixed rread more about the changes to see exactly why the module was breaking it
+      -runs to fast on heavy mode
+      -runs more incostantly on full mode check wjy bothese these thinsg happen

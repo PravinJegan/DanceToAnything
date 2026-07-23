@@ -134,3 +134,17 @@ body, html {
 .invisable{
     display : none;
 }
+
+#score-display {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 5rem;
+    font-weight: bold;
+    color: #00ff00;
+    z-index: 100;
+    text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.8);
+    pointer-events: none; /* Lets clicks pass through */
+    font-family: monospace;
+}

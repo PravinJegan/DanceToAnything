@@ -40,7 +40,7 @@ window.onYouTubeIframeAPIReady = function() {
     youtubePlayer = new YT.Player('youtube-player', {
         height: "100%",
         width: "100%",
-        videoId: '3Kbxs-lpIZQ', //CHANGE VIDEO 
+        videoId: 'WlK1ol0mGhI', //CHANGE VIDEO undertail: WlK1ol0mGhI. jst dance :3Kbxs-lpIZQ
         playerVars: {
             'autoplay': 0,
             'playsinline': 1,
@@ -96,7 +96,7 @@ document.getElementById('start-btn').addEventListener('click', async () => {
         startPressed = true;
         last_draw_times.clear();
         drawbones(true_score_all, line_overlay, video_underlay, videoLandmarker) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
-
+        scoreDisplay.classList.remove('invisable');
         });
     } catch (err) {
         console.error("users said no to screen", err);
@@ -161,6 +161,12 @@ navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
 
 }
 
+function getAngle(p1, p2) {
+    if (!p1 || !p2 || p1.visibility < 0.6 || p2.visibility < 0.6) {
+        return null; 
+    }
+    return Math.atan2(p1.y - p2.y, p1.x - p2.x);
+}
 
 async function drawbones(player_array, canvas, video, landmarkerType) {
 
@@ -218,17 +224,17 @@ async function drawbones(player_array, canvas, video, landmarkerType) {
         if (result.landmarks){ //this is drawig the connecters and points based on connectons
             for (const landmark of result.landmarks){
                 player_frame = [
-                /* 0 right forearm     */Math.atan2(landmark[14].y - landmark[16].y, landmark[14].x - landmark[16].x),
-                /* 1 right upper arm   */Math.atan2(landmark[12].y - landmark[14].y, landmark[12].x - landmark[14].x),
-                /* 2 right body        */Math.atan2(landmark[24].y - landmark[12].y, landmark[24].x - landmark[12].x),
-                /* 3 right upper leg   */Math.atan2(landmark[24].y - landmark[26].y, landmark[24].x - landmark[26].x),
-                /* 4 right lower leg   */Math.atan2(landmark[26].y - landmark[28].y, landmark[26].x - landmark[28].x),
-                /* 5 left forearm      */Math.atan2(landmark[13].y - landmark[15].y, landmark[13].x - landmark[15].x),
-                /* 6 left upper arm    */Math.atan2(landmark[11].y - landmark[13].y, landmark[11].x - landmark[13].x),
-                /* 7 left body         */Math.atan2(landmark[23].y - landmark[11].y, landmark[23].x - landmark[11].x),
-                /* 8 left upper leg    */Math.atan2(landmark[23].y - landmark[25].y, landmark[23].x - landmark[25].x),
-                /* 9 left lower leg    */Math.atan2(landmark[25].y - landmark[27].y, landmark[25].x - landmark[27].x),
-            ];
+                    /* 0 right forearm     */ getAngle(landmark[14], landmark[16]),
+                    /* 1 right upper arm   */ getAngle(landmark[12], landmark[14]),
+                    /* 2 right body        */ getAngle(landmark[24], landmark[12]),
+                    /* 3 right upper leg   */ getAngle(landmark[24], landmark[26]),
+                    /* 4 right lower leg   */ getAngle(landmark[26], landmark[28]),
+                    /* 5 left forearm      */ getAngle(landmark[13], landmark[15]),
+                    /* 6 left upper arm    */ getAngle(landmark[11], landmark[13]),
+                    /* 7 left body         */ getAngle(landmark[23], landmark[11]),
+                    /* 8 left upper leg    */ getAngle(landmark[23], landmark[25]),
+                    /* 9 left lower leg    */ getAngle(landmark[25], landmark[27]),
+                ];
             //console.log("angles:", player_frame);
             }
         }
@@ -244,6 +250,71 @@ async function drawbones(player_array, canvas, video, landmarkerType) {
                     angles: player_frame
                 });
             }
+            tryGradingNewFrame();
         }
+    }
+}
+
+
+const scoreDisplay = document.getElementById('score-display');
+
+let totalAccuracy = 0;
+let frameCount = 0;
+let totalAccuracyPercent = 0;
+
+let lastGradedFrame = -1;
+
+function tryGradingNewFrame() {
+    if (!startPressed) return;
+
+    // The target array index we need to grade next (e.g., 0, then 1, then 2...)
+    const targetIndex = lastGradedFrame + 1;
+
+    // THE HANDSHAKE: Only proceed if BOTH arrays have successfully pushed this exact index!
+    if (player_all.length > targetIndex && true_score_all.length > targetIndex) {
+        
+        // Grab the exact matching frame pair (Frame 10 vs Frame 10)
+        const playerScore = player_all[targetIndex].angles;
+        const videoScore = true_score_all[targetIndex].angles;
+
+        let currentFrameAccuracy = 0;
+        let validJoints = 0;
+
+        for (let i = 0; i < 10; i++) {
+            if (playerScore[i] !== null && videoScore[i] !== null) {
+                let diff = Math.abs(playerScore[i] - videoScore[i]);
+                if (diff > Math.PI) {
+                    diff = (2 * Math.PI) - diff;
+                }
+                let jointAccuracy = (1 - (diff / Math.PI)) * 100;
+                currentFrameAccuracy += jointAccuracy;
+                validJoints++;
+            }
+        }
+
+        // If visible joints were found, record the grade and update the UI instantly!
+        if (validJoints > 0) {
+            const frameScore = Math.round(currentFrameAccuracy / validJoints);
+            
+            totalAccuracy += frameScore;
+            frameCount++;
+            totalAccuracyPercent = Math.round(totalAccuracy / frameCount);
+
+            scoreDisplay.innerText = `${totalAccuracyPercent}%`;
+        }
+        if (totalAccuracyPercent >= 85) {
+            scoreDisplay.style.color = "#00ff00";      
+        } else if (totalAccuracyPercent >= 70) {
+            scoreDisplay.style.color = "#ffff00"; 
+        } else {
+            scoreDisplay.style.color = "#ff0000";                      
+        }
+
+        console.log(totalAccuracy);
+        console.log(frameCount);
+
+
+        // Lock this frame so it NEVER gets double-counted!
+        lastGradedFrame = targetIndex;
     }
 }
