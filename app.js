@@ -10,6 +10,7 @@ let runningMode = "VIDEO";
 let lastVideoTime = -1;
 let peopleCount = 1;
 let personNum = 1;
+let startPressed = false
 
 
 let player_all = [];
@@ -39,15 +40,16 @@ window.onYouTubeIframeAPIReady = function() {
     youtubePlayer = new YT.Player('youtube-player', {
         height: "100%",
         width: "100%",
-        videoId: 'WlK1ol0mGhI', 
+        videoId: 'FbjCroKrL-g', //CHANGE VIDEO 
         playerVars: {
             'autoplay': 0,
             'playsinline': 1,
-            'controls': 0,
+            'controls': 1,
             'iv_load_policy': 3,    // Kills video annotations and interactive cards
             'modestbranding': 1,    // Removes the YouTube logo watermark
             'rel': 0,               // Prevents end-screen recommendation grids from overlapping
-            'disablekb': 1        
+            'disablekb': 1,
+            'origin': window.location.origin      
         },
     });
 };
@@ -87,9 +89,12 @@ document.getElementById('start-btn').addEventListener('click', async () => {
         video_underlay.srcObject = stream;
         video_underlay.play();
 
+
         video_underlay.addEventListener("loadeddata", () => // arrow fuction so it satrts intvar only after drabones happens which only happens after the video loads 
         {
             
+        startPressed = true;
+        last_draw_times.clear();
         drawbones(true_score_all, line_overlay, video_underlay, videoLandmarker) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
 
         });
@@ -106,6 +111,7 @@ const invisCover = document.getElementById('temp-cover');
 invisCover.addEventListener("click", () =>{
 document.getElementById('start-btn').classList.remove('invisable');
 youtubePlayer.pauseVideo();
+startPressed = false;
 });
 
 async function posetracker() {
@@ -123,7 +129,7 @@ async function posetracker() {
     const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
     );
 
-    const modelType = "lite"; // Options: "lite", "full", "heavy"
+    const modelType = "full"; // Options: "lite", "full", "heavy"
     const options = {
         baseOptions: {
             modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_"+ modelType + "/float16/1/pose_landmarker_"+ modelType + ".task",
@@ -226,17 +232,18 @@ async function drawbones(player_array, canvas, video, landmarkerType) {
             //console.log("angles:", player_frame);
             }
         }
-        if (isLiveStream) {
-            player_array.push({
-                time: performance.now() / 1000,
-                angles: player_frame
-            });
-        } else {
-            player_array.push({
-                time: video.currentTime,
-                angles: player_frame
-            });
+        if (startPressed){
+            if (isLiveStream) {
+                player_array.push({
+                    time: performance.now() / 1000,
+                    angles: player_frame
+                });
+            } else {
+                player_array.push({
+                    time: video.currentTime,
+                    angles: player_frame
+                });
+            }
         }
-    
     }
 }

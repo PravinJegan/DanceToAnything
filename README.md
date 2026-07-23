@@ -1,5 +1,14 @@
 Things to do
 
+-fix the frame timings becase it is currntly noot running at exactly 30 frames per soecond
+      -or think of a better way to traxk excat time of frames to compare the both?
+      - mostly fixed rread more about the changes to see exactly why the module was breaking it
+      -runs to fast on heavy mode
+      -runs more incostantly on full mode check wjy bothese these thinsg happen
+
+-syconise the clocks so that the frames of each both satrt on zero at the same time
+      -alredy satrted asking ai about it
+
 - MAKE IT SO THAT IF IT DOENST HAVE A HIGH CONFIDENCE FOR THE POINTS IT JUST WEIGHS IT WAY LESS ALSO SO LIKE IF THE LEGS DONT HAVE HIGH CONFDENCE TRACK PROPERLY ON THE VIDEO GIVE THE PLAVER FULL MARKS FOR ANY VECTROS INCULDING THOSE LEG POINTS 
       - read on how the land marks and confidnce score works like if it is cofidnt per point or for the whole body im prety sure its per point
 
@@ -9,11 +18,13 @@ Things to do
 -Change start buton so it donest break after first reaperance and also so it pausie thevideos and scoreing and so that it doenst ask for screen share every subsient time
       -BASICLy make a new PASUE button instaed of using teh same satrt button
 
--fix the frame timings becase it is currntly noot running at exactly 30 frames per soecond
-      -or think of a better way to traxk excat time of frames to compare the both?
 
--syconise the clocks so that the frames of each both satrt on zero at the same time
-      -alredy satrted asking ai about it
+-Add so that you can either use regular videos or youtube videos could be very useful for like dance practice for dance teams or tryouts for dance teams
+
+_______ABOVE IS A GOOD USE CASE_________
+
+
+
 
 
 
