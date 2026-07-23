@@ -6,7 +6,7 @@ Change it so that you cant just game the system and holy hae you schest be track
 
 make it so that scoreing is more actuate to all body parts but genours when you are close to being right
 
-
+make do gain points system where you gain points and at the end you learn the max amount (which is just tracked while the thing is going) of points and get final percentage at end we dont realy need a progras bar while its going on
 
 
 -syconise the clocks so that the frames of each both satrt on zero at the same time
