@@ -44,7 +44,7 @@ window.onYouTubeIframeAPIReady = function() {
         playerVars: {
             'autoplay': 0,
             'playsinline': 1,
-            'controls': 1,
+            'controls': 0,
             'iv_load_policy': 3,    // Kills video annotations and interactive cards
             'modestbranding': 1,    // Removes the YouTube logo watermark
             'rel': 0,               // Prevents end-screen recommendation grids from overlapping
