@@ -40,7 +40,7 @@ window.onYouTubeIframeAPIReady = function() {
     youtubePlayer = new YT.Player('youtube-player', {
         height: "100%",
         width: "100%",
-        videoId: 'WlK1ol0mGhI', //CHANGE VIDEO undertail: WlK1ol0mGhI. jst dance :3Kbxs-lpIZQ
+        videoId: '3Kbxs-lpIZQ', //CHANGE VIDEO undertail: WlK1ol0mGhI. jst dance :3Kbxs-lpIZQ, chika test: eqjFmsZGBSc
         playerVars: {
             'autoplay': 0,
             'playsinline': 1,
