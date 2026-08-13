@@ -100,7 +100,7 @@ body, html {
 #webcam_div{
     position: fixed;
     bottom: 20px;
-    right: 20px;
+    left: 20px;
     width: 280px;
     height: 210px;
     z-index: 10;
