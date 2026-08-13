@@ -132,7 +132,7 @@ body, html {
 
 
 .invisable{
-    display : none;
+    display : none !important;
 }
 
 #score-display {
@@ -147,4 +147,265 @@ body, html {
     text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.8);
     pointer-events: none; /* Lets clicks pass through */
     font-family: monospace;
+}
+
+.score-hud {
+    position: fixed;
+    top: 30px;
+    font-size: 3.5rem; /* Slightly smaller so both fit comfortably on screen */
+    font-weight: bold;
+    color: #00ff00;
+    z-index: 100;
+    text-shadow: 3px 3px 10px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    font-family: monospace;
+}
+
+/* Anchor overall score to the left side */
+#total-score {
+    left: 40px;
+}
+
+/* Anchor current 10-frame average to the right side */
+#current-score {
+    right: 40px;
+}
+
+/*HOME PAGE*/
+/* --- FRONT PAGE STYLING --- */
+#home-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    /* Sleek, dark dark gray background */
+    background-color: #141414; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 500;
+    transition: opacity 0.5s ease;
+}
+
+.title-container {
+    text-align: center;
+    color: #ffffff;
+    font-family: monospace;
+}
+
+.title-container h1 {
+    font-size: 6rem;
+    color: #ffffff;
+    /* Subtle white glow to make the title pop off the dark gray background */
+    margin-bottom: 20px;
+    letter-spacing: 5px;
+}
+
+.title-container p {
+    font-size: 1.8rem;
+    color: #e0e0e0; /* Crisp off-white for high readability */
+    margin-bottom: 50px;
+}
+
+/* Light Blue Accent Button */
+#enter-app-btn {
+    padding: 20px 50px;
+    font-size: 2.2rem;
+    font-weight: bold;
+    font-family: monospace;
+    background-color: #38b6ff;
+    color: #ffffff;
+    border: 3px solid #ffffff;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+    /* Matches the light blue glow to the button color */
+}
+
+#enter-app-btn:hover {
+    /* Create an oversized 8-color gradient */
+    transform: scale(1.05);
+    background: linear-gradient(45deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff);
+    background-size: 400% 400% !important;
+    
+    /* Run the animation for 3 seconds continuously */
+    animation: rainbow-slide 4s linear infinite !important;
+    
+    /* Lock the text and border */
+    color: #ffffff !important;
+    border: 3px solid #ffffff !important;
+}
+
+@keyframes rainbow-slide {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+/* --- SOURCE SELECTOR SCREEN STYLING --- */
+#select-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #141414; /* Matches your sleek dark gray theme */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 400;
+    transition: opacity 0.5s ease;
+}
+
+.card-container {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    align-items: stretch;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.select-card {
+    background-color: #1f1f1f;
+    border: 3px solid #38b6ff;
+    border-radius: 16px;
+    padding: 30px 20px;
+    width: 280px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+
+.select-card:hover:not(.disabled) {
+    background-color: #292929;
+    transform: translateY(-8px);
+}
+
+.card-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #38b6ff;
+    font-family: monospace;
+}
+
+.card-desc {
+    font-size: 1.1rem;
+    color: #e0e0e0;
+    text-align: center;
+    font-family: sans-serif;
+    line-height: 1.4;
+}
+
+/* Grayed-out styling for your future placeholder button */
+.select-card.disabled {
+    border-color: #555555;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.select-card.disabled .card-title {
+    color: #888888;
+}
+
+
+#youtube-input-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #141414;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 400;
+    transition: opacity 0.5s ease;
+}
+
+.input-layout {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+#youtube-url-input {
+    width: 500px;
+    padding: 15px 20px;
+    font-size: 1.5rem;
+    font-family: monospace;
+    background-color: #1f1f1f;
+    color: #ffffff;
+    border: 3px solid #555555;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#youtube-url-input:focus {
+    border-color: #38b6ff;
+}
+
+#load-youtube-btn {
+    padding: 15px 30px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: monospace;
+    background-color: #38b6ff;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+#load-youtube-btn:hover {
+    background-color: #1aa3ff;
+    transform: scale(1.05);
+}
+
+
+/* --- ENDING SCREEN STYLING --- */
+#ending-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #141414;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 600; /* Highest z-index so it covers the game completely */
+    transition: opacity 0.5s ease;
+}
+
+#final-score-display {
+    font-size: 8rem;
+    font-weight: bold;
+    color: #00ff00;
+    font-family: monospace;
+    margin: 40px 0;
+}
+
+#back-to-select-btn {
+    padding: 15px 40px;
+    font-size: 1.8rem;
+    font-weight: bold;
+    font-family: monospace;
+    background-color: #38b6ff;
+    color: #ffffff;
+    border: 3px solid #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+#back-to-select-btn:hover {
+    background-color: #1aa3ff;
+    transform: scale(1.05);
 }

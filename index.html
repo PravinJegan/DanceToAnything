@@ -8,26 +8,94 @@
     <link rel="stylesheet" href="style.css">
   </head>
   <body>
-    <p>hello</p>
 
-    <div id="score-display" class="invisable">0%</div>
-    <div id="button-center"><button id="start-btn">START</button></div>
-  
-    <div id="webcam_div">
-      <video id="camera" autoplay playsinline></video>
-      <canvas id="line_overlay"></canvas>
+    <div id="home-screen">
+      <div class="title-container">
+        <h1>Dance to Anything</h1>
+        <p>Mirror the YouTube dancer to earn your high score!</p>
+        <button id="enter-app-btn">SELECT ROUTINE</button>
+      </div>
     </div>
 
-    <div id="video_div">
-      <div id="youtube-player"></div>
-      <video id="youtube_capture_feed" autoplay playsinline muted></video>
-      <div id="temp-cover"></div>
-      <canvas id="line_overlay_youtube"></canvas>
+    <!-- ========================================================= -->
+    <!-- 2. NEW: VIDEO SOURCE SELECTOR SCREEN                      -->
+    <!-- ========================================================= -->
+    <div id="select-screen" class="invisable">
+      <div class="title-container">
+        <h1>CHOOSE YOUR SOURCE</h1>
+        <p>Where is your dance routine coming from?</p>
+        
+        <div class="card-container">
+          <button id="btn-youtube" class="select-card">
+            <span class="card-title">YOUTUBE</span>
+            <span class="card-desc">Stream a dance video directly from a YouTube URL or ID</span>
+          </button>
+
+          <button id="btn-local" class="select-card">
+            <span class="card-title">VIDEO FILE</span>
+            <span class="card-desc">Upload an MP4, MOV, or WebM file from your computer</span>
+          </button>
+
+          <button id="btn-other" class="select-card disabled" disabled>
+            <span class="card-title">OTHER SOURCE</span>
+            <span class="card-desc">Webcam mirror & custom integrations coming soon!</span>
+          </button>
+        </div>
+
+        <!-- Hidden HTML File Picker for Option 2 -->
+        <input type="file" id="local-file-input" accept="video/*" class="invisable">
+      </div>
     </div>
     
-    <p>hello</p>
+    <div id="game-screen" class="invisable">
+      <p>hello</p>
+
+      <div id="total-score" class="score-hud invisable">OVERALL: 0%</div>
+      <div id="current-score" class="score-hud invisable">CURRENT: 0%</div>
+      <div id="button-center"><button id="start-btn">START</button></div>
     
-    <!-- <script src="https://www.youtube.com/iframe_api"></script> -->
+      <div id="webcam_div">
+        <video id="camera" autoplay playsinline></video>
+        <canvas id="line_overlay"></canvas>
+      </div>
+
+      <div id="video_div">
+        <div id="youtube-player"></div>
+        <video id="youtube_capture_feed" autoplay playsinline muted></video>
+        <div id="temp-cover"></div>
+        <canvas id="line_overlay_youtube"></canvas>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 2.5 NEW: YOUTUBE LINK INPUT SCREEN                        -->
+    <!-- ========================================================= -->
+    <div id="youtube-input-screen" class="invisable">
+      <div class="title-container">
+        <h1>ENTER YOUTUBE LINK</h1>
+        <p>Paste the URL of the dance routine you want to mirror.</p>
+        
+        <div class="input-layout">
+          <input type="text" id="youtube-url-input" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off">
+          <button id="load-youtube-btn">LOAD VIDEO</button>
+        </div>
+      </div>
+     </div>
+
+         <!-- ========================================================= -->
+    <!-- 3. NEW: ENDING / RESULTS SCREEN                           -->
+    <!-- ========================================================= -->
+    <div id="ending-screen" class="invisable">
+      <div class="title-container">
+        <h1>ROUTINE COMPLETE</h1>
+        <p>Here is your final accuracy score:</p>
+        
+        <div id="final-score-display">0%</div>
+        
+        <button id="back-to-select-btn">CHOOSE ANOTHER DANCE</button>
+      </div>
+    </div>
+    <p>hello</p> 
     <script type="module" src="app.js"></script>
   </body>
 </html>

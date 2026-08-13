@@ -4,6 +4,22 @@ import{
     DrawingUtils,
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 
+const homeScreen = document.getElementById('home-screen');
+const selectScreen = document.getElementById('select-screen');
+const gameScreen = document.getElementById('game-screen');
+
+const enterAppBtn = document.getElementById('enter-app-btn');
+const btnYoutube = document.getElementById('btn-youtube');
+const btnLocal = document.getElementById('btn-local');
+const localFileInput = document.getElementById('local-file-input');
+const youtubeInputScreen = document.getElementById('youtube-input-screen');
+const youtubeUrlInput = document.getElementById('youtube-url-input');
+const loadYoutubeBtn = document.getElementById('load-youtube-btn');
+const endingScreen = document.getElementById('ending-screen');
+const finalScoreDisplay = document.getElementById('final-score-display');
+const backToSelectBtn = document.getElementById('back-to-select-btn');
+
+let activeVideoSource = "youtube";
 
 let youtube_video;
 let runningMode = "VIDEO";
@@ -11,6 +27,7 @@ let lastVideoTime = -1;
 let peopleCount = 1;
 let personNum = 1;
 let startPressed = false
+let youtubeLink = null;
 
 
 let player_all = [];
@@ -22,9 +39,147 @@ let playerLandmarker = null;
 let videoLandmarker = null;
 let isModelLoading = false;
 
+// 2. UPGRADED SCREEN SWITCHER: Resets opacity for ALL screens to prevent freezing!
+function switchScreen(targetScreen, hashName) {
+    window.location.hash = hashName;
+    
+    // Hide everything
+    if (homeScreen) { homeScreen.classList.add('invisable'); homeScreen.style.opacity = '1'; }
+    if (selectScreen) { selectScreen.classList.add('invisable'); selectScreen.style.opacity = '1'; }
+    if (youtubeInputScreen) { youtubeInputScreen.classList.add('invisable'); youtubeInputScreen.style.opacity = '1';}
+    if (gameScreen) { gameScreen.classList.add('invisable'); gameScreen.style.opacity = '1'; }
+    if (endingScreen) { endingScreen.classList.add('invisable'); endingScreen.style.opacity = '1'; }
+    // Reveal target
+    if (targetScreen) {
+        targetScreen.classList.remove('invisable');
+        targetScreen.style.opacity = '1';
+    }
+
+    if (hashName === "game") {
+        startcamera();
+    }
+}
+
+// 3. EVENT LISTENERS
+if (enterAppBtn) {
+    enterAppBtn.addEventListener('click', () => {
+        homeScreen.style.opacity = '0';
+        setTimeout(() => {
+            switchScreen(selectScreen, "select");
+        }, 500);
+    });
+}
+
+if (btnYoutube) {
+    btnYoutube.addEventListener('click', () => {
+        activeVideoSource = "youtube";
+        switchScreen(youtubeInputScreen, "youtube-input");
+    });
+}
+
+
+// 2. YouTube Input Screen -> Extract ID -> Go to Game Screen
+if (loadYoutubeBtn) {
+    loadYoutubeBtn.addEventListener('click', () => {
+        const rawUrl = youtubeUrlInput.value.trim();
+        
+        // Regex magic to find the 11-character YouTube video ID inside the link
+        const match = rawUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=))([^"&?\/\s]{11})/);
+        
+        if (match && match[1]) {
+            const extractedVideoId = match[1];
+            console.log("Successfully extracted ID:", extractedVideoId);
+            
+            // Tell the hidden YouTube API to queue up this new video!
+            if (youtubePlayer && typeof youtubePlayer.cueVideoById === 'function') {
+                youtubePlayer.cueVideoById(extractedVideoId);
+            }
+            
+            // Now launch the game
+            switchScreen(gameScreen, "game");
+        } else {
+            // Flash the border red if they pasted a bad link
+            youtubeUrlInput.style.borderColor = "#ff0000";
+            setTimeout(() => { youtubeUrlInput.style.borderColor = "#555555"; }, 1000);
+        }
+    });
+}
+
+if (btnLocal && localFileInput) {
+    btnLocal.addEventListener('click', () => {
+        activeVideoSource = "local";
+        console.log("Source set to:", activeVideoSource);
+        localFileInput.click();
+    });
+
+    localFileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            console.log("User selected local file:", file.name);
+            const fileURL = URL.createObjectURL(file);
+            
+            // Pass to a local video player element
+            const localPlayer = document.getElementById('youtube_capture_feed');
+            if (localPlayer) {
+                localPlayer.src = fileURL;
+            }
+            switchScreen(gameScreen, "game");
+        }
+    });
+}
+
+if (backToSelectBtn) {
+    backToSelectBtn.addEventListener('click', () => {
+        switchScreen(selectScreen, "select");
+    });
+}
+
+// 4. THE SPA ROUTER MEMORY CHECK
+function handleRouting() {
+    const currentHash = window.location.hash;
+
+    // SAFETY NET: If the user hits "Back" to leave the game screen, 
+    // we must pause the video and hide the scoreboards!
+    if (currentHash !== "#game" && startPressed) {
+        startPressed = false;
+        
+        if (youtubePlayer && typeof youtubePlayer.pauseVideo === 'function') {
+            youtubePlayer.pauseVideo();
+        }
+        
+        // Hide score HUDs and restore the Start button
+        const totalScoreBox = document.getElementById('total-score');
+        const currentScoreBox = document.getElementById('current-score');
+        const startBtn = document.getElementById('start-btn');
+        
+        if (totalScoreBox) totalScoreBox.classList.add('invisable');
+        if (currentScoreBox) currentScoreBox.classList.add('invisable');
+        if (startBtn) startBtn.classList.remove('invisable');
+    }
+
+    // Route to the correct screen
+    if (currentHash === "#game") {
+        switchScreen(gameScreen, "game");
+    } else if (currentHash === "#select") {
+        switchScreen(selectScreen, "select");
+    } else if (currentHash === "#youtube-input") {
+        switchScreen(youtubeInputScreen, "youtube-input");
+    } else if (currentHash === "#end") {
+        switchScreen(endingScreen, "end"); 
+    } else {
+        switchScreen(homeScreen, "");
+    }
+}
+
+// 1. Run the router instantly when the page first loads/refreshes
+window.addEventListener("DOMContentLoaded", handleRouting);
+
+// 2. Run the router EVERY TIME the user clicks the physical Back or Forward buttons!
+window.addEventListener("hashchange", handleRouting);
+
+
 ///fuctions start here
-posetracker();
-startcamera();
+
 setInterval(() => 
     { // just to print out all the sciore for each fram to make sure running at 30 frames 
     const latest_camera = player_all.at(-1) || "No webcam data yet";
@@ -40,7 +195,7 @@ window.onYouTubeIframeAPIReady = function() {
     youtubePlayer = new YT.Player('youtube-player', {
         height: "100%",
         width: "100%",
-        videoId: '3Kbxs-lpIZQ', //CHANGE VIDEO undertail: WlK1ol0mGhI. jst dance :3Kbxs-lpIZQ, chika test: eqjFmsZGBSc
+        videoId: 'WlK1ol0mGhI', //CHANGE VIDEO undertail: WlK1ol0mGhI. jst dance :3Kbxs-lpIZQ, chika test: eqjFmsZGBSc
         playerVars: {
             'autoplay': 0,
             'playsinline': 1,
@@ -51,6 +206,14 @@ window.onYouTubeIframeAPIReady = function() {
             'disablekb': 1,
             'origin': window.location.origin      
         },
+        events: {
+            'onStateChange': function(event) {
+                // event.data === 0 means the YouTube video finished!
+                if (event.data === 0 && startPressed) {
+                    endGame();
+                }
+            }
+        }
     });
 };
 
@@ -59,52 +222,110 @@ tag.src = "https://www.youtube.com/iframe_api";
 const firstScriptTag = document.getElementsByTagName('script')[0];
 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
+const totalScoreBox = document.getElementById('total-score');
+const currentScoreBox = document.getElementById('current-score');
 
 document.getElementById('start-btn').addEventListener('click', async () => {
+
 
     await posetracker();
     const video_underlay = document.getElementById('youtube_capture_feed');
     const line_overlay = document.getElementById('line_overlay_youtube');
     const youtube_div = document.getElementById('video_div');
 
-    try {
-        document.getElementById('start-btn').classList.toggle('invisable');
-        const stream = await navigator.mediaDevices.getDisplayMedia({ 
-            video: { frameRate: 30 }, 
-            audio: true ,
-            preferCurrentTab: true,       // 1. Opens the popup directly to the "This Tab" tab instead of "Entire Screen"
-            selfBrowserSurface: 'include', // 2. Guarantees your current webpage is included and pre-selected in the list
-            surfaceSwitching: 'include'
-        });
+    totalScoreBox.classList.remove('invisable');
+    currentScoreBox.classList.remove('invisable');
 
-        
-        if (window.CropTarget) {
-            const [videoTrack] = stream.getVideoTracks();
-            const cropTarget = await CropTarget.fromElement(youtube_div);
-            await videoTrack.cropTo(cropTarget);
-            console.log("croped video");
-        } else {
-            console.warn("cant crop video");
-        }
-        video_underlay.srcObject = stream;
-        video_underlay.play();
+    // Wipe capture arrays
+    player_all.length = 0;
+    true_score_all.length = 0;
+
+    // Reset all scoring trackers back to zero
+    totalAccuracy = 0;
+    frameCount = 0;
+    totalAccuracyPercent = 0;
+    lastGradedFrame = -1;
+    recentScores.length = 0; // Empty the conveyor belt!
 
 
-        video_underlay.addEventListener("loadeddata", () => // arrow fuction so it satrts intvar only after drabones happens which only happens after the video loads 
+
+    last_draw_times.clear();
+
+    if (activeVideoSource === "youtube")
         {
+        try {
+            document.getElementById('start-btn').classList.toggle('invisable');
+            const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                video: { frameRate: 30 }, 
+                audio: true ,
+                preferCurrentTab: true,       // 1. Opens the popup directly to the "This Tab" tab instead of "Entire Screen"
+                selfBrowserSurface: 'include', // 2. Guarantees your current webpage is included and pre-selected in the list
+                surfaceSwitching: 'include'
+            });
+
             
-        startPressed = true;
-        last_draw_times.clear();
-        drawbones(true_score_all, line_overlay, video_underlay, videoLandmarker) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
-        scoreDisplay.classList.remove('invisable');
-        });
-    } catch (err) {
-        console.error("users said no to screen", err);
-        document.getElementById('start-btn').classList.remove('invisable');
+            if (window.CropTarget) {
+                const [videoTrack] = stream.getVideoTracks();
+                const cropTarget = await CropTarget.fromElement(youtube_div);
+                await videoTrack.cropTo(cropTarget);
+                console.log("croped video");
+            } else {
+                console.warn("cant crop video");
+            }
+            video_underlay.srcObject = stream;
+            video_underlay.play();
+
+
+            video_underlay.addEventListener("loadeddata", () => // arrow fuction so it satrts intvar only after drabones happens which only happens after the video loads 
+            {
+                if (youtubePlayer && typeof youtubePlayer.playVideo === 'function') {
+            youtubePlayer.playVideo();
+        }
+            startPressed = true;
+            last_draw_times.clear();
+            totalScoreBox.classList.remove('invisable');
+            currentScoreBox.classList.remove('invisable');
+            drawbones(true_score_all, line_overlay, video_underlay, videoLandmarker) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
+        
+            });
+        } catch (err) {
+            console.error("users said no to screen", err);
+            document.getElementById('start-btn').classList.remove('invisable');
+        }
+        youtubePlayer.playVideo(); // AD A IF STATMENT TO MAKE SURE THE VIDEO LOADS LATER!!!
+        youtubePlayer.unMute();
+        youtubePlayer.setVolume(100);
     }
-    youtubePlayer.playVideo(); // AD A IF STATMENT TO MAKE SURE THE VIDEO LOADS LATER!!!
-    youtubePlayer.unMute();
-    youtubePlayer.setVolume(100);
+
+    else if (activeVideoSource === "local") {
+        document.getElementById('start-btn').classList.add('invisable');
+        
+        // Hide the YouTube iframe container so it doesn't block your local video!
+        document.getElementById('youtube-player').style.display = "none";
+        
+        // Make sure the local video is visible
+        video_underlay.style.display = "block";
+        video_underlay.style.width = "100%";
+        video_underlay.style.height = "100%";
+        
+        // Just play the file directly
+        video_underlay.play();
+        startPressed = true;
+        drawbones(true_score_all, line_overlay, video_underlay, videoLandmarker);
+
+        video_underlay.play();
+        startPressed = true;
+        
+        //Listen for the local MP4 file ending
+        video_underlay.onended = () => {
+            if (activeVideoSource === "local" && startPressed) {
+                endGame();
+            }
+        };
+
+        drawbones(true_score_all, line_overlay, video_underlay, videoLandmarker);
+    }
+
 });
 //gets the button to reappere
 const invisCover = document.getElementById('temp-cover');
@@ -112,6 +333,9 @@ invisCover.addEventListener("click", () =>{
 document.getElementById('start-btn').classList.remove('invisable');
 youtubePlayer.pauseVideo();
 startPressed = false;
+
+totalScoreBox.classList.add('invisable');
+currentScoreBox.classList.add('invisable');
 });
 
 async function posetracker() {
@@ -256,13 +480,13 @@ async function drawbones(player_array, canvas, video, landmarkerType) {
 }
 
 
-const scoreDisplay = document.getElementById('score-display');
-
 let totalAccuracy = 0;
 let frameCount = 0;
 let totalAccuracyPercent = 0;
 
 let lastGradedFrame = -1;
+
+const recentScores = [];
 
 function tryGradingNewFrame() {
     if (!startPressed) return;
@@ -290,26 +514,37 @@ function tryGradingNewFrame() {
                 currentFrameAccuracy += jointAccuracy;
                 validJoints++;
             }
+            else if (playerScore[i] == null)
+            {
+                currentFrameAccuracy += 50;
+                validJoints++;
+            }
         }
 
         // If visible joints were found, record the grade and update the UI instantly!
         if (validJoints > 0) {
+            // Grade this specific single frame
             const frameScore = Math.round(currentFrameAccuracy / validJoints);
             
+            // --- A. CALCULATE OVERALL SCORE (Left Side) ---
             totalAccuracy += frameScore;
             frameCount++;
             totalAccuracyPercent = Math.round(totalAccuracy / frameCount);
 
-            scoreDisplay.innerText = `${totalAccuracyPercent}%`;
-        }
-        if (totalAccuracyPercent >= 85) {
-            scoreDisplay.style.color = "#00ff00";      
-        } else if (totalAccuracyPercent >= 70) {
-            scoreDisplay.style.color = "#ffff00"; 
-        } else {
-            scoreDisplay.style.color = "#ff0000";                      
-        }
+            // --- B. CALCULATE 10-FRAME MOVING AVERAGE (Right Side) ---
+            recentScores.push(frameScore);
+            if (recentScores.length > 10) {
+                recentScores.shift(); // Drops the oldest frame once we exceed 10
+            }
+            
+            // Sum the recent array and divide by its current length
+            const recentSum = recentScores.reduce((sum, val) => sum + val, 0);
+            const currentAverage = Math.round(recentSum / recentScores.length);
 
+            // --- C. UPDATE UI & COLOR CODING ---
+            updateHudBox(totalScoreBox, "OVERALL", totalAccuracyPercent);
+            updateHudBox(currentScoreBox, "CURRENT", currentAverage);
+        }
         console.log(totalAccuracy);
         console.log(frameCount);
 
@@ -318,3 +553,46 @@ function tryGradingNewFrame() {
         lastGradedFrame = targetIndex;
     }
 }
+
+function updateHudBox(boxElement, label, score) {
+    boxElement.innerText = `${label}: ${score}%`;
+    
+    if (score >= 85) {
+        boxElement.style.color = "#00ff00";      
+    } else if (score >= 70) {
+        boxElement.style.color = "#ffff00"; 
+    } else {
+        boxElement.style.color = "#ff0000";                      
+    }
+}
+
+function endGame() {
+    startPressed = false;
+    
+    // Hide game HUDs and reset start button
+    totalScoreBox.classList.add('invisable');
+    currentScoreBox.classList.add('invisable');
+    document.getElementById('start-btn').classList.remove('invisable');
+    
+    // Set the giant final score text and matching color!
+    finalScoreDisplay.innerText = `${totalAccuracyPercent}%`;
+    if (totalAccuracyPercent >= 85) {
+        finalScoreDisplay.style.color = "#00ff00";
+    } else if (totalAccuracyPercent >= 70) {
+        finalScoreDisplay.style.color = "#ffff00";
+    } else {
+        finalScoreDisplay.style.color = "#ff0000";
+    }
+
+    // Kill the screen-share recording so the red dot goes away
+    const video_underlay = document.getElementById('youtube_capture_feed');
+    if (video_underlay && video_underlay.srcObject) {
+         video_underlay.srcObject.getTracks().forEach(track => track.stop());
+    }
+
+    // Teleport to the ending screen!
+    switchScreen(endingScreen, "end");
+}
+
+
+
