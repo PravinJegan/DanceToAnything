@@ -514,7 +514,7 @@ function tryGradingNewFrame() {
                 currentFrameAccuracy += jointAccuracy;
                 validJoints++;
             }
-            else if (playerScore[i] == null)
+            else if (playerScore[i] == null && videoScore[i] !== null)
             {
                 currentFrameAccuracy += 50;
                 validJoints++;
