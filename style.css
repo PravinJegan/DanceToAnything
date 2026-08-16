@@ -409,3 +409,95 @@ body, html {
     background-color: #1aa3ff;
     transform: scale(1.05);
 }
+
+/* =========================================
+   MOBILE RESPONSIVENESS (Screens under 768px)
+   ========================================= */
+@media (max-width: 768px) {
+    /* 1. HOME SCREEN */
+    .title-container h1 {
+        font-size: 3rem; /* Scaled down from 6rem */
+        letter-spacing: 2px;
+    }
+    .title-container p {
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+        padding: 0 20px; /* Prevent text from touching screen edges */
+    }
+    #enter-app-btn {
+        padding: 15px 30px;
+        font-size: 1.5rem;
+    }
+
+    /* 2. HUD & GAMEPLAY */
+    #start-btn {
+        width: 90%;
+        max-width: 300px;
+        height: 70px;
+        font-size: 1.5rem;
+    }
+    #score-display {
+        font-size: 3rem;
+        top: 15px;
+    }
+    .score-hud {
+        font-size: 1.8rem; /* Fit both scores on a narrow screen */
+        top: 15px;
+    }
+    #total-score {
+        left: 15px;
+    }
+    #current-score {
+        right: 15px;
+    }
+    /* Shrink the Picture-in-Picture webcam so it doesn't cover the screen */
+    #webcam_div {
+        width: 140px; 
+        height: 105px;
+        bottom: 10px;
+        left: 10px;
+        border-width: 2px;
+    }
+
+    /* 3. SOURCE SELECTOR SCREEN */
+    .card-container {
+        flex-direction: column; /* Stack cards vertically instead of side-by-side */
+        align-items: center;
+        gap: 15px;
+        padding: 20px;
+        overflow-y: auto; /* Allow scrolling if screen is very short */
+        max-height: 90vh;
+    }
+    .select-card {
+        width: 100%;
+        max-width: 320px;
+        padding: 20px 15px;
+    }
+
+    /* 4. YOUTUBE INPUT SCREEN */
+    .input-layout {
+        flex-direction: column; /* Stack input and button vertically */
+        align-items: center;
+        padding: 0 20px;
+        width: 100%;
+    }
+    #youtube-url-input {
+        width: 100%; /* Override the hardcoded 500px */
+        max-width: 400px;
+        font-size: 1.2rem;
+    }
+    #load-youtube-btn {
+        width: 100%;
+        max-width: 400px;
+        font-size: 1.2rem;
+    }
+
+    /* 5. ENDING SCREEN */
+    #final-score-display {
+        font-size: 4.5rem; /* Scaled down from 8rem */
+    }
+    #back-to-select-btn {
+        font-size: 1.4rem;
+        padding: 12px 24px;
+    }
+}
