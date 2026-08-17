@@ -4,6 +4,12 @@ import{
     DrawingUtils,
 } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest";
 
+const FPS = 30;
+const FRAME_TIME_MS = 1000 / 30;
+const DEAD_ZONE_RADIANS = 0.05;
+const OK_SCORE_THRESHOLD = 70;
+const GOOD_SCORE_THRESHOLD = 85;
+
 const homeScreen = document.getElementById('home-screen');
 const selectScreen = document.getElementById('select-screen');
 const gameScreen = document.getElementById('game-screen');
@@ -44,14 +50,14 @@ function switchScreen(targetScreen, hashName) {
     window.location.hash = hashName;
     
     // Hide everything
-    if (homeScreen) { homeScreen.classList.add('invisable'); homeScreen.style.opacity = '1'; }
-    if (selectScreen) { selectScreen.classList.add('invisable'); selectScreen.style.opacity = '1'; }
-    if (youtubeInputScreen) { youtubeInputScreen.classList.add('invisable'); youtubeInputScreen.style.opacity = '1';}
-    if (gameScreen) { gameScreen.classList.add('invisable'); gameScreen.style.opacity = '1'; }
-    if (endingScreen) { endingScreen.classList.add('invisable'); endingScreen.style.opacity = '1'; }
+    if (homeScreen) { homeScreen.classList.add('invisible'); homeScreen.style.opacity = '1'; }
+    if (selectScreen) { selectScreen.classList.add('invisible'); selectScreen.style.opacity = '1'; }
+    if (youtubeInputScreen) { youtubeInputScreen.classList.add('invisible'); youtubeInputScreen.style.opacity = '1';}
+    if (gameScreen) { gameScreen.classList.add('invisible'); gameScreen.style.opacity = '1'; }
+    if (endingScreen) { endingScreen.classList.add('invisible'); endingScreen.style.opacity = '1'; }
     // Reveal target
     if (targetScreen) {
-        targetScreen.classList.remove('invisable');
+        targetScreen.classList.remove('invisible');
         targetScreen.style.opacity = '1';
     }
 
@@ -152,9 +158,9 @@ function handleRouting() {
         const currentScoreBox = document.getElementById('current-score');
         const startBtn = document.getElementById('start-btn');
         
-        if (totalScoreBox) totalScoreBox.classList.add('invisable');
-        if (currentScoreBox) currentScoreBox.classList.add('invisable');
-        if (startBtn) startBtn.classList.remove('invisable');
+        if (totalScoreBox) totalScoreBox.classList.add('invisible');
+        if (currentScoreBox) currentScoreBox.classList.add('invisible');
+        if (startBtn) startBtn.classList.remove('invisible');
     }
 
     // Route to the correct screen
@@ -195,7 +201,7 @@ window.onYouTubeIframeAPIReady = function() {
     youtubePlayer = new YT.Player('youtube-player', {
         height: "100%",
         width: "100%",
-        videoId: 'dQw4w9WgXcQ', //CHANGE VIDEO undertail: WlK1ol0mGhI. jst dance :3Kbxs-lpIZQ, chika test: eqjFmsZGBSc
+        videoId: 'dQw4w9WgXcQ', //CHANGE VIDEO
         playerVars: {
             'autoplay': 0,
             'playsinline': 1,
@@ -233,8 +239,8 @@ document.getElementById('start-btn').addEventListener('click', async () => {
     const line_overlay = document.getElementById('line_overlay_youtube');
     const youtube_div = document.getElementById('video_div');
 
-    totalScoreBox.classList.remove('invisable');
-    currentScoreBox.classList.remove('invisable');
+    totalScoreBox.classList.remove('invisible');
+    currentScoreBox.classList.remove('invisible');
 
     // Wipe capture arrays
     player_all.length = 0;
@@ -255,9 +261,9 @@ document.getElementById('start-btn').addEventListener('click', async () => {
     if (activeVideoSource === "youtube")
         {
         try {
-            document.getElementById('start-btn').classList.toggle('invisable');
+            document.getElementById('start-btn').classList.toggle('invisible');
             const stream = await navigator.mediaDevices.getDisplayMedia({ 
-                video: { frameRate: 30 }, 
+                video: { frameRate: FPS }, 
                 audio: true ,
                 preferCurrentTab: true,       // 1. Opens the popup directly to the "This Tab" tab instead of "Entire Screen"
                 selfBrowserSurface: 'include', // 2. Guarantees your current webpage is included and pre-selected in the list
@@ -284,14 +290,14 @@ document.getElementById('start-btn').addEventListener('click', async () => {
         }
             startPressed = true;
             last_draw_times.clear();
-            totalScoreBox.classList.remove('invisable');
-            currentScoreBox.classList.remove('invisable');
-            drawbones(true_score_all, line_overlay, video_underlay, videoLandmarker) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
+            totalScoreBox.classList.remove('invisible');
+            currentScoreBox.classList.remove('invisible');
+            drawBones(true_score_all, line_overlay, video_underlay, videoLandmarker) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
         
             });
         } catch (err) {
             console.error("users said no to screen", err);
-            document.getElementById('start-btn').classList.remove('invisable');
+            document.getElementById('start-btn').classList.remove('invisible');
         }
         youtubePlayer.playVideo(); // AD A IF STATMENT TO MAKE SURE THE VIDEO LOADS LATER!!!
         youtubePlayer.unMute();
@@ -299,7 +305,7 @@ document.getElementById('start-btn').addEventListener('click', async () => {
     }
 
     else if (activeVideoSource === "local") {
-        document.getElementById('start-btn').classList.add('invisable');
+        document.getElementById('start-btn').classList.add('invisible');
         
         // Hide the YouTube iframe container so it doesn't block your local video!
         document.getElementById('youtube-player').style.display = "none";
@@ -312,7 +318,7 @@ document.getElementById('start-btn').addEventListener('click', async () => {
         // Just play the file directly
         video_underlay.play();
         startPressed = true;
-        drawbones(true_score_all, line_overlay, video_underlay, videoLandmarker);
+        drawBones(true_score_all, line_overlay, video_underlay, videoLandmarker);
 
         video_underlay.play();
         startPressed = true;
@@ -324,14 +330,13 @@ document.getElementById('start-btn').addEventListener('click', async () => {
             }
         };
 
-        drawbones(true_score_all, line_overlay, video_underlay, videoLandmarker);
+        drawBones(true_score_all, line_overlay, video_underlay, videoLandmarker);
     }
 
 });
-//gets the button to reappere
+//Brings Back button
 const invisCover = document.getElementById('temp-cover');
 invisCover.addEventListener("click", () => {
-    // SAFETY CHECK: Ignore clicks if the user hasn't clicked START yet!
     if (player_all.length === 0 && true_score_all.length === 0) return;
 
     const video_underlay = document.getElementById('youtube_capture_feed');
@@ -409,7 +414,7 @@ navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
     video_underlay.addEventListener("loadeddata", () => // arrow fuction so it satrts intvar only after drabones happens which only happens after the video loads 
         {
             
-        drawbones(player_all, line_overlay, video_underlay, playerLandmarker) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
+        drawBones(player_all, line_overlay, video_underlay, playerLandmarker) // It just saying right after we get the video to do the ai over lay draw bones iswhats gonna draw bones need parnetese
     })  
     
 });
@@ -436,9 +441,9 @@ function smoothLandmarks(video, raw, alpha = 0.35) {
     return next;
 }
 
-async function drawbones(player_array, canvas, video, landmarkerType) {
+async function drawBones(player_array, canvas, video, landmarkerType) {
 
-    window.requestAnimationFrame( ()=> {drawbones(player_array, canvas, video, landmarkerType)})//this is asking the javascrpit bofre next computer diplay frame draw the things that need to be drawn so its only doing it for the refresh rate
+    window.requestAnimationFrame( ()=> {drawBones(player_array, canvas, video, landmarkerType)})//this is asking the javascrpit bofre next computer diplay frame draw the things that need to be drawn so its only doing it for the refresh rate
 
     if (!video || video.readyState < 2 || video.paused || video.ended) { //if video not on dont start 
     return; 
@@ -453,7 +458,7 @@ async function drawbones(player_array, canvas, video, landmarkerType) {
 
     const isLiveStream = Boolean(video.srcObject);
     const currentClockType = isLiveStream ? performance.now() : video.currentTime;
-    const frame_time = isLiveStream ? (1000/30) : (1/30);
+    const frame_time = isLiveStream ? (FRAME_TIME_MS) : (1/FPS);
     const tolerance = isLiveStream ? 2 : 0.002;
 
     let lastTime = last_draw_times.get(video);
@@ -538,7 +543,7 @@ let lastGradedFrame = -1;
 const recentScores = [];
 
 function scoreFromDiff(diff) {
-    const deadZone = 0.05;                 // ~6°, still counts as a perfect match
+    const deadZone = DEAD_ZONE_RADIANS;                 // ~6°, still counts as a perfect match
     if (diff <= deadZone) return 100;
     const t = (diff - deadZone) / (Math.PI - deadZone);
     return (1 - Math.pow(t, 1.5)) * 100;  // forgiving near zero, steeper further out
@@ -611,9 +616,9 @@ function tryGradingNewFrame() {
 function updateHudBox(boxElement, label, score) {
     boxElement.innerText = `${label}: ${score}%`;
     
-    if (score >= 85) {
+    if (score >= GOOD_SCORE_THRESHOLD) {
         boxElement.style.color = "#00ff00";      
-    } else if (score >= 70) {
+    } else if (score >= OK_SCORE_THRESHOLD) {
         boxElement.style.color = "#ffff00"; 
     } else {
         boxElement.style.color = "#ff0000";                      
@@ -624,15 +629,15 @@ function endGame() {
     startPressed = false;
     
     // Hide game HUDs and reset start button
-    totalScoreBox.classList.add('invisable');
-    currentScoreBox.classList.add('invisable');
-    document.getElementById('start-btn').classList.remove('invisable');
+    totalScoreBox.classList.add('invisible');
+    currentScoreBox.classList.add('invisible');
+    document.getElementById('start-btn').classList.remove('invisible');
     
     // Set the giant final score text and matching color!
     finalScoreDisplay.innerText = `${totalAccuracyPercent}%`;
-    if (totalAccuracyPercent >= 85) {
+    if (totalAccuracyPercent >= GOOD_SCORE_THRESHOLD) {
         finalScoreDisplay.style.color = "#00ff00";
-    } else if (totalAccuracyPercent >= 70) {
+    } else if (totalAccuracyPercent >= OK_SCORE_THRESHOLD) {
         finalScoreDisplay.style.color = "#ffff00";
     } else {
         finalScoreDisplay.style.color = "#ff0000";
