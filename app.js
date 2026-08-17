@@ -195,7 +195,7 @@ window.onYouTubeIframeAPIReady = function() {
     youtubePlayer = new YT.Player('youtube-player', {
         height: "100%",
         width: "100%",
-        videoId: 'WlK1ol0mGhI', //CHANGE VIDEO undertail: WlK1ol0mGhI. jst dance :3Kbxs-lpIZQ, chika test: eqjFmsZGBSc
+        videoId: 'dQw4w9WgXcQ', //CHANGE VIDEO undertail: WlK1ol0mGhI. jst dance :3Kbxs-lpIZQ, chika test: eqjFmsZGBSc
         playerVars: {
             'autoplay': 0,
             'playsinline': 1,
@@ -250,6 +250,7 @@ document.getElementById('start-btn').addEventListener('click', async () => {
 
 
     last_draw_times.clear();
+    smoothState.clear();
 
     if (activeVideoSource === "youtube")
         {
@@ -329,13 +330,43 @@ document.getElementById('start-btn').addEventListener('click', async () => {
 });
 //gets the button to reappere
 const invisCover = document.getElementById('temp-cover');
-invisCover.addEventListener("click", () =>{
-document.getElementById('start-btn').classList.remove('invisable');
-youtubePlayer.pauseVideo();
-startPressed = false;
+invisCover.addEventListener("click", () => {
+    // SAFETY CHECK: Ignore clicks if the user hasn't clicked START yet!
+    if (player_all.length === 0 && true_score_all.length === 0) return;
 
-totalScoreBox.classList.add('invisable');
-currentScoreBox.classList.add('invisable');
+    const video_underlay = document.getElementById('youtube_capture_feed');
+
+    // IF THE GAME IS CURRENTLY PAUSED -> RESUME IT
+    if (!startPressed) {
+        startPressed = true;
+        last_draw_times.clear();
+        
+        // Un-dim the scores to show the game is live again
+        totalScoreBox.style.opacity = '1';
+        currentScoreBox.style.opacity = '1';
+        
+        // Resume the correct video source
+        if (activeVideoSource === "youtube" && youtubePlayer) {
+            youtubePlayer.playVideo();
+        } else if (activeVideoSource === "local") {
+            video_underlay.play();
+        }
+    } 
+    // IF THE GAME IS CURRENTLY PLAYING -> PAUSE IT
+    else {
+        startPressed = false;
+        
+        // Dim the scores to visually show the user it is paused
+        totalScoreBox.style.opacity = '0.5';
+        currentScoreBox.style.opacity = '0.5';
+        
+        // Pause the correct video source
+        if (activeVideoSource === "youtube" && youtubePlayer) {
+            youtubePlayer.pauseVideo();
+        } else if (activeVideoSource === "local") {
+            video_underlay.pause();
+        }
+    }
 });
 
 async function posetracker() {
@@ -392,6 +423,19 @@ function getAngle(p1, p2) {
     return Math.atan2(p1.y - p2.y, p1.x - p2.x);
 }
 
+const smoothState = new Map(); // key: video element, value: last smoothed landmarks
+function smoothLandmarks(video, raw, alpha = 0.35) {
+    let prev = smoothState.get(video);
+    if (!prev) { prev = raw.map(p => ({...p})); smoothState.set(video, prev); return prev; }
+    const next = raw.map((p, i) => ({
+        x: prev[i].x + alpha * (p.x - prev[i].x),
+        y: prev[i].y + alpha * (p.y - prev[i].y),
+        visibility: p.visibility
+    }));
+    smoothState.set(video, next);
+    return next;
+}
+
 async function drawbones(player_array, canvas, video, landmarkerType) {
 
     window.requestAnimationFrame( ()=> {drawbones(player_array, canvas, video, landmarkerType)})//this is asking the javascrpit bofre next computer diplay frame draw the things that need to be drawn so its only doing it for the refresh rate
@@ -426,6 +470,11 @@ async function drawbones(player_array, canvas, video, landmarkerType) {
 
         let result = landmarkerType.detectForVideo(video, performance.now());
         
+        let landmark = null;
+        if (result.landmarks && result.landmarks.length > 0) {
+            landmark = smoothLandmarks(video, result.landmarks[0]);
+            }
+
         let player_frame = [null,null,null,null,null,null,null,null,null,null]
 
         if (canvas){
@@ -433,11 +482,11 @@ async function drawbones(player_array, canvas, video, landmarkerType) {
         const drawingUtils = new DrawingUtils(canvasCtx);
         canvasCtx.clearRect(0, 0, canvas.width, canvas.height) //clears canves before next lien
 
-        if (result.landmarks && canvas){ //this is drawig the connecters and points based on connectons
-            for (const landmark of result.landmarks){
-                drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS /* PoseLandmarker is capital becase POSE_CONNECTIONS just tells what pots are connected to what */, {color: "Blue", lineWidth : 10});
-                drawingUtils.drawLandmarks(landmark, {color: "Red", radius : 5});
-            }
+        if (landmark && canvas){ //this is drawig the connecters and points based on connectons
+        //for (const landmark of result.landmarks){
+            drawingUtils.drawConnectors(landmark, PoseLandmarker.POSE_CONNECTIONS /* PoseLandmarker is capital becase POSE_CONNECTIONS just tells what pots are connected to what */, {color: "Blue", lineWidth : 10});
+            drawingUtils.drawLandmarks(landmark, {color: "Red", radius : 5});
+        //}
         }
         }
 
@@ -445,22 +494,22 @@ async function drawbones(player_array, canvas, video, landmarkerType) {
 
         
 
-        if (result.landmarks){ //this is drawig the connecters and points based on connectons
-            for (const landmark of result.landmarks){
-                player_frame = [
-                    /* 0 right forearm     */ getAngle(landmark[14], landmark[16]),
-                    /* 1 right upper arm   */ getAngle(landmark[12], landmark[14]),
-                    /* 2 right body        */ getAngle(landmark[24], landmark[12]),
-                    /* 3 right upper leg   */ getAngle(landmark[24], landmark[26]),
-                    /* 4 right lower leg   */ getAngle(landmark[26], landmark[28]),
-                    /* 5 left forearm      */ getAngle(landmark[13], landmark[15]),
-                    /* 6 left upper arm    */ getAngle(landmark[11], landmark[13]),
-                    /* 7 left body         */ getAngle(landmark[23], landmark[11]),
-                    /* 8 left upper leg    */ getAngle(landmark[23], landmark[25]),
-                    /* 9 left lower leg    */ getAngle(landmark[25], landmark[27]),
-                ];
-            //console.log("angles:", player_frame);
-            }
+        if (landmark){ //this is drawig the connecters and points based on connectons
+        //for (const landmark of result.landmarks){
+            player_frame = [
+                /* 0 right forearm     */ getAngle(landmark[14], landmark[16]),
+                /* 1 right upper arm   */ getAngle(landmark[12], landmark[14]),
+                /* 2 right body        */ getAngle(landmark[24], landmark[12]),
+                /* 3 right upper leg   */ getAngle(landmark[24], landmark[26]),
+                /* 4 right lower leg   */ getAngle(landmark[26], landmark[28]),
+                /* 5 left forearm      */ getAngle(landmark[13], landmark[15]),
+                /* 6 left upper arm    */ getAngle(landmark[11], landmark[13]),
+                /* 7 left body         */ getAngle(landmark[23], landmark[11]),
+                /* 8 left upper leg    */ getAngle(landmark[23], landmark[25]),
+                /* 9 left lower leg    */ getAngle(landmark[25], landmark[27]),
+            ];
+        //console.log("angles:", player_frame);
+        //}
         }
         if (startPressed){
             if (isLiveStream) {
@@ -488,6 +537,13 @@ let lastGradedFrame = -1;
 
 const recentScores = [];
 
+function scoreFromDiff(diff) {
+    const deadZone = 0.05;                 // ~6°, still counts as a perfect match
+    if (diff <= deadZone) return 100;
+    const t = (diff - deadZone) / (Math.PI - deadZone);
+    return (1 - Math.pow(t, 1.5)) * 100;  // forgiving near zero, steeper further out
+}
+
 function tryGradingNewFrame() {
     if (!startPressed) return;
 
@@ -510,7 +566,7 @@ function tryGradingNewFrame() {
                 if (diff > Math.PI) {
                     diff = (2 * Math.PI) - diff;
                 }
-                let jointAccuracy = (1 - (diff / Math.PI)) * 100;
+                let jointAccuracy = scoreFromDiff(diff);
                 currentFrameAccuracy += jointAccuracy;
                 validJoints++;
             }
@@ -545,8 +601,6 @@ function tryGradingNewFrame() {
             updateHudBox(totalScoreBox, "OVERALL", totalAccuracyPercent);
             updateHudBox(currentScoreBox, "CURRENT", currentAverage);
         }
-        console.log(totalAccuracy);
-        console.log(frameCount);
 
 
         // Lock this frame so it NEVER gets double-counted!
