@@ -389,7 +389,7 @@ async function posetracker() {
     const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
     );
 
-    const modelType = "full"; // Options: "lite", "full", "heavy"
+    const modelType = "lite"; // Options: "lite", "full", "heavy"
     const options = {
         baseOptions: {
             modelAssetPath: "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_"+ modelType + "/float16/1/pose_landmarker_"+ modelType + ".task",
